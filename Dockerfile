@@ -1,19 +1,36 @@
-FROM nvidia/cuda:12.2.2-runtime-ubuntu22.04
+# Base image with CUDA 12.2 + cuDNN8 runtime
+FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04
 
-# System deps
+# Avoid interactive prompts during apt installs
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+
+# System dependencies
 RUN apt-get update && apt-get install -y \
-    git python3 python3-pip && \
-    rm -rf /var/lib/apt/lists/*
+    git curl wget python3 python3-pip python3-venv \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install vLLM (fast inference engine)
-RUN pip install --upgrade pip
-RUN pip install vllm==0.4.2 huggingface_hub
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
 
-# Expose OpenAI-compatible API server
+# Install PyTorch (CUDA 12.1 wheels are compatible with 12.2 runtime)
+RUN pip install --no-cache-dir \
+    torch==2.2.2+cu121 \
+    torchvision==0.17.2+cu121 \
+    torchaudio==2.2.2+cu121 \
+    --index-url https://download.pytorch.org/whl/cu121
+
+# Install vLLM (this will bring in lm-format-enforcer==0.9.8 automatically)
+RUN pip install --no-cache-dir vllm==0.4.2
+
+# Override transformers to a compatible version (still has LogitsWarper)
+RUN pip install --no-cache-dir "transformers[torch]==4.36.2"
+
+# Working directory
+WORKDIR /workspace
+
+# Expose API port
 EXPOSE 8000
 
-# Default command: run vLLM with OpenChat
-CMD ["python3", "-m", "vllm.entrypoints.openai.api_server", \
-     "--model", "openchat/openchat-3.5-1210", \
-     "--port", "8000", \
-     "--dtype", "float16"]
+# Default command: launch vLLM OpenAI-compatible server
+CMD ["python3", "-m", "vllm.entrypoints.openai.api_server", "--model", "openchat/openchat-3.5-1210"]
