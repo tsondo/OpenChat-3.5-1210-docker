@@ -20,11 +20,17 @@ RUN pip install --no-cache-dir \
     torchaudio==2.2.2+cu121 \
     --index-url https://download.pytorch.org/whl/cu121
 
-# Install vLLM (this will bring in lm-format-enforcer==0.9.8 automatically)
+# Pin NumPy to <2.0.0 to avoid outlines/vLLM incompatibility
+RUN pip install --no-cache-dir "numpy==1.26.4"
+
+# Install vLLM (this will bring in lm-format-enforcer==0.9.8 and outlines)
 RUN pip install --no-cache-dir vllm==0.4.2
 
 # Override transformers to a compatible version (still has LogitsWarper)
 RUN pip install --no-cache-dir "transformers[torch]==4.36.2"
+
+# Pin tokenizers to match transformers 4.36.2
+RUN pip install --no-cache-dir "tokenizers==0.15.2"
 
 # Working directory
 WORKDIR /workspace
