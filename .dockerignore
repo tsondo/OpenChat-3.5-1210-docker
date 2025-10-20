@@ -1,0 +1,42 @@
+# Ignore Git metadata
+.git
+.gitignore
+
+# Python cache and build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docker files that shouldn't be copied inside
+docker-compose*.yml
+Dockerfile*
+
+# Local data and models (keep them mounted, not baked in)
+models/
+outputs/
+cache/
+logs/
+checkpoints/
+
+# Notebooks and experiments
+*.ipynb
+notebooks/
+
+# Anything else user-specific
+.env
